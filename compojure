@@ -1,0 +1,9 @@
+#!/bin/sh
+CLASSPATH=/Users/skuro/.clojure/compojure.jar
+DEPS=/Users/skuro/.clojure/compojure-deps
+ 
+for f in $DEPS/*.jar; do
+    CLASSPATH=$CLASSPATH:$f
+done
+ 
+java -cp $CLASSPATH clojure.lang.Script $1

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+PORT=8081
+MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=128m" 
+if [ $# -gt 0 ]
+then
+  PORT=$1
+  shift
+fi
+
+echo Using port $PORT
+mvn site:run -Dport=$PORT $@
