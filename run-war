@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Uses the currently installed jetty-runner jar from your local M2 repository
+# to run a war file from the filesystem
+
+# TODO: make use of some command line args
+GROUP=org.mortbay.jetty
+ARTIFACT=jetty-runner
+VERSION=7.0.0.pre5
+REPO=~/.m2/repository
+
+java -jar $REPO/${GROUP//./\/}/$ARTIFACT/$VERSION/$ARTIFACT-$VERSION.jar $@
