@@ -11,6 +11,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
         print 'Message addressed from:', mailfrom
         print 'Message addressed to  :', rcpttos
         print 'Message length        :', len(data)
+        print 'Message               :', unicode(data)
         return
 
 print "Starting the echo SMTP server"
