@@ -1,0 +1,6 @@
+#/bin/bash
+du -k | sort -nr  |awk '{sum=$1;
+hum[1024**3]="G";hum[1024**2]="M";hum[1024]="K";
+for (x=1024**3; x>=1024; x/=1024){
+        if (sum>=x) { printf "%.1f%s\t\t",sum/x,hum[x];print $2;break
+}}}'
