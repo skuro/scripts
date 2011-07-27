@@ -4,7 +4,7 @@ GROWL=/usr/local/bin/growlnotify
 mvn $*
 if [ $? -gt 0 ]
 then
-    echo "Build failed!" | $GROWL "Maven" --name maven --image ~/scripts/maven-growl-failure.jpg > /dev/null 2>&1
+    echo "Build failed!" | $GROWL "Maven" --name maven --image ~/bin/maven-growl-failure.jpg > /dev/null 2>&1
 else
-    echo "Build completed successfully." | $GROWL "Maven" --name maven --image ~/scripts/maven-growl-success.jpg > /dev/null 2>&1
+    echo "Build completed successfully." | $GROWL "Maven" --name maven --image ~/bin/maven-growl-success.jpg > /dev/null 2>&1
 fi
