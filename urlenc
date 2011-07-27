@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+from xml.sax.saxutils import escape
+import sys
+
+def prin(x):
+    print x + "\n"
+
+map (prin, map(escape, sys.argv[1:]))

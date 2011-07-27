@@ -1,7 +1,0 @@
-#!/bin/sh
-# Taken from:
-# http://www.cyberciti.biz/tips/linux-unix-bsd-openssh-server-best-practices.html
-
-l=$1
-[ "$l" == "" ] && l=20
-tr -dc A-Za-z0-9_ < /dev/urandom | head -c ${l} | xargs
