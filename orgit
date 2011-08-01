@@ -1,0 +1,24 @@
+#!/bin/sh
+
+######################################################
+# OrGit                                              #
+# Automatically git-push updates to your org files   #
+#----------------------------------------------------#
+# Author: Carlo Sciolla -- <carlo.sciolla@gmail.com> #
+######################################################
+
+# TODO: config files?
+ORGDIR=/Users/skuro/Documents/org
+
+DATE=`date`
+CD $ORGIT
+
+# 1. My Org files are a one man show. Still, something could have changed remotely
+git pull
+
+# 2. Push new changes
+git add .
+git commit -m "Automatic commit -- $DATE"
+git push
+
+cd -
