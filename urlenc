@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+"""URL encoding made easy"""
+
+from urllib import quote
+import sys
+
+def prin(x):
+    print x + "\n"
+
+if len(sys.argv) < 2:
+    prin (quote (sys.stdin.read()))
+else:
+    map (prin, map(quote, sys.argv[1:]))
