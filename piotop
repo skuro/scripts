@@ -1,0 +1,108 @@
+#!/bin/bash
+# process_io_top -  show procesess by top read/write KB I/O per file
+#		    Written by Levent Serinol (lserinol@gmail.com)
+#		    http://lserinol.blogspot.com
+# Apr/14/2009
+#
+# USAGE: process_io_top [-s interval] [-p pid]
+# 	 
+#	 -s interval 	# gather and show statistics in given interval (seconds)
+#	 -p pid		# show read/write KB I/O just for given PID
+#	 -h 		# show usage information
+#
+# eg:
+#	process_io_top	-s 10	
+#
+#
+#
+####################################################################################
+interval=5
+show_pid=0
+pid=0
+
+function usage()
+{
+echo "
+USAGE: io.sh [-s interval] [-p pid]
+         -s             # set interval, default is 5 seconds
+         -p pid         # pid
+  eg, 
+         io -p 630                # io activity of pid 630
+         io -s 10                 # refresh output in every 10 seconds";
+}
+
+while getopts h:p:s:a name
+do
+        case $name in
+        p)     	show_pid=1; pid=$OPTARG ;;
+        s)     	interval=$OPTARG ;;
+        h|?)    usage;
+              	exit 1
+        esac
+done
+
+/usr/sbin/dtrace -Cws <( cat <<EOF
+
+ inline int PID		= $pid;
+ inline int SHOW_PID    = $show_pid;
+ inline int INTERVAL    = $interval;
+
+
+#pragma D option quiet
+#pragma D option aggsortrev
+
+
+dtrace:::BEGIN 
+{
+  secs = INTERVAL;
+  printf("Please wait....\n");
+}
+
+io:::start 
+/ (SHOW_PID == 1) && ( pid == PID) /
+{
+	self->rw=args[0]->b_flags & B_READ ? "R" : "W";
+	@files[pid,execname,self->rw,args[2]->fi_pathname] = sum (args[0]->b_bcount);
+	@total_blks[self->rw]=count();
+	@total_bytes[self->rw]=sum (args[0]->b_bcount);
+	self->rw=0;
+}
+
+io:::start 
+/ SHOW_PID == 0 /
+/* SHOW_PID == 0 && args[2]->fi_pathname != "<none>" */
+{
+	self->rw=args[0]->b_flags & B_READ ? "R" : "W";
+	@files[pid,execname,self->rw,args[2]->fi_pathname] = sum (args[0]->b_bcount);
+	@total_blks[self->rw]=count();
+	@total_bytes[self->rw]=sum (args[0]->b_bcount);
+	self->rw=0;
+}
+
+profile:::tick-1s
+{
+        secs--;
+}
+
+
+profile:::tick-1s
+/secs == 0/
+{
+
+	trunc(@files,30);
+	normalize(@files,1024);
+	system("/usr/bin/clear"); 
+	printf("%Y ",walltimestamp);
+	printa("%s %@11d blocks, ",@total_blks);
+	printa("%s %@11d bytes, ",@total_bytes);
+	printf("\n%6s %-12s %3s %8s %3s\n", "PID", "CMD","R/W", "KB", "FILE");
+	printa("%6d %-12.12s %1s %@10d %s\n",@files);
+	secs = INTERVAL;
+
+}
+dtrace:::END
+{
+        trunc(@files);
+}
+EOF
+)
