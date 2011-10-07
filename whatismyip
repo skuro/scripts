@@ -1,4 +1,5 @@
 #!/bin/sh
 
-IP=`curl -s http://www.whatismyip.com/automation/n09230945.asp`
+URL="http://automation.whatismyip.com/n09230945.asp"
+IP=`curl -s $URL`
 echo $IP
