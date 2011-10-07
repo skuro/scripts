@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LEIN_VERSION="1.6.0"
+LEIN_VERSION="1.6.1.1"
 export LEIN_VERSION
 
 case $LEIN_VERSION in
@@ -71,6 +71,11 @@ CLASSPATH="$CLASSPATH:$LEIN_PLUGIN_PATH:$LEIN_USER_PLUGIN_PATH:test/:src/"
 LEIN_JAR="$HOME/.lein/self-installs/leiningen-$LEIN_VERSION-standalone.jar"
 CLOJURE_JAR="$HOME/.m2/repository/org/clojure/clojure/1.2.1/clojure-1.2.1.jar"
 NULL_DEVICE=/dev/null
+
+# apply context specific CLASSPATH entries
+if [ -f .classpath ]; then
+    CLASSPATH="`cat .classpath`:$CLASSPATH"
+fi
 
 # normalize $0 on certain BSDs
 if [ "$(dirname "$0")" = "." ]; then
