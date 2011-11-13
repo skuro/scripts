@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sh /Applications/SourceDistributions/chemistry-opencmis-workbench/workbench.sh

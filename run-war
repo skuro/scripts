@@ -15,4 +15,5 @@ then
   mvn dependency:get -DartifactId=$ARTIFACT -DgroupId=$GROUP -Dversion=$VERSION -DrepoUrl=http://repo1.maven.org/maven2
 fi
 
+echo "java -jar $JETTY_RUNNER $@"
 java -jar $JETTY_RUNNER $@
