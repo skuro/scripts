@@ -1,10 +1,10 @@
 #!/bin/bash
 # Emacs daemon startup script
 # Carlo Sciolla
-# 5 Jul 2011
+# 27 Nov 2011
 
-EMACS=/Applications/Emacs.app/Contents/MacOS/Emacs 
+EMACS=/usr/bin/emacs
 #INIT=/Applications/Source\ Distributions/emacs-starter-kit/init.el
-INIT=~/.emacs
+INIT=~/.emacs.d/init.el
 
 $EMACS --debug-init -q -l $INIT --daemon
