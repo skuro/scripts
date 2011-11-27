@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ ! -e $TMPDIR/emacs$UID/server ]
+if [ ! -e /tmp/emacs$UID/server ]
 then
 	~/bin/emacs-daemon
 fi
