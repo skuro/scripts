@@ -11,7 +11,7 @@
 ORGDIR=/Users/skuro/Documents/org
 
 DATE=`date`
-CD $ORGIT
+cd $ORGDIR
 
 # 1. My Org files are a one man show. Still, something could have changed remotely
 git pull

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+H2_HOME=/Applications/SourceDistributions/h2
+
+sh $H2_HOME/bin/h2.sh

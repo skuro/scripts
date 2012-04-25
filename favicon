@@ -1,0 +1,12 @@
+#!/bin/sh
+
+SRC=$1
+DST=${2:-favicon.ico}
+
+if [ $# -lt 1 ]
+then
+    echo "Usage: $0 src-image.png [favicon.ico]"
+    exit 1
+fi
+
+convert $SRC -resize 16x16! $DST

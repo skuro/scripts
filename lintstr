@@ -1,0 +1,11 @@
+#!/bin/sh
+
+FILE=$1
+shift
+
+cat >> .tmp.xml << EOF
+$@
+EOF
+
+xmllint -format .tmp.xml > $FILE
+rm .tmp.xml

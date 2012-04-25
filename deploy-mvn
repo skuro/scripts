@@ -1,0 +1,10 @@
+#!/bin/sh
+
+function deploy-file{
+  ARTIFACT=$1
+  GROUP=$2
+  VERSION=$3
+  PACKAGE=$4
+  
+}
+

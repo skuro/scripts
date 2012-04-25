@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Took from http://www.zalas.eu/viewing-svn-diff-result-in-colors
+svn diff "${@}" | colordiff
