@@ -1,0 +1,40 @@
+#!/bin/bash
+
+function get-new-basepath(){
+  NEXT_BRANCH=$1
+  BASE_URL=${FULL%%/$BRANCH_NAME}
+  NEW_URL="$BASE_URL/$NEXT_BRANCH"
+}
+
+function get-current-branch(){
+  FULL=$1
+  BRANCH_NAME=`basename $FULL`
+  if [ ! $BRANCH_NAME == "trunk" ]
+  then
+        TMP=`dirname $FULL`
+        BRANCH_NAME=`basename $TMP`"/$BRANCH_NAME"
+  fi
+}
+
+SVN_PATH=`svn info | grep URL | cut -f2 -d' '`
+if [ "x$SVN_PATH" == "x" ]
+then
+        echo "Can't get the current SVN path. Are you in a SVN project?"
+        exit 1
+fi
+
+get-current-branch $SVN_PATH
+get-new-basepath $1
+
+svn ls $NEW_URL --depth empty > /dev/null 2>&1
+EXISTS=$?
+if [ ! $EXISTS -eq 0 ]
+then
+  echo "The requested branch $NEW_URL was not found in the repository, aborting"
+  return $EXISTS
+fi
+
+echo "Press any key to switch to $NEW_URL, or CTRL-C to abort"
+read OK
+
+svn switch $NEW_URL
