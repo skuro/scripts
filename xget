@@ -1,19 +1,27 @@
 #!/bin/bash
+#===============================================================================
 #
-# XML get
-# -------
+#        FILE: xget
 #
-# Downloads and pretty prints XMLs from various sources
+#       USAGE: xget URI [..args...]
 #
-# Author: Carlo Sciolla <skuro@skuro.tk>
-# Version: 0.1
+# DESCRIPTION: Downloads and pretty prints XMLs from various sources (file,
+#              HTTP, ...)
+#
+#     OPTIONS: see the 'usage' function below
+#      AUTHOR: Carlo Sciolla <skuro@skuro.tk>
+#     VERSION: 0.1
 #
 # Release notes:
 #
-# v0.1: Initial implementation, based on curl, cat, GNU source-highlight and less
+# v0.1: Initial implementation based on curl, cat, GNU source-highlight and less
 #
+#===============================================================================
 
-
+#===  FUNCTION  ================================================================
+#        NAME: usage
+# DESCRIPTION: prints out the instructions on how to use the program
+#===============================================================================
 function usage(){
     echo "$0 xml_resource [..args..]"
     echo
@@ -26,25 +34,39 @@ function usage(){
     echo
 }
 
+#-------------------------------------------------------------------------------
+# checks whether the command invocation is valid. if not, print usage and exit
+#-------------------------------------------------------------------------------
 if [ $# -lt 1 ]
 then
     usage
     exit $ERR_NOARG
 fi
 
-# Args mgmt
-RESOURCE="$1"
+#-------------------------------------------------------------------------------
+# Input arguments
+#-------------------------------------------------------------------------------
+RESOURCE="$1"   # the XML to retrieve
 shift
-EXTRA_ARGS="$@"
+EXTRA_ARGS="$@" # the arguments to provide to the retriever
 
 RETRIEVER="curl"
 PAGER="$PAGER"
 HIGHLIGHTER="source-highlight -o STDOUT -s xml -f esc"
 LINTER="xmllint --format -"
 
-ERR_NOARGS=-10
-ERR_BADURI=-20
+#-------------------------------------------------------------------------------
+# Error codes
+#-------------------------------------------------------------------------------
+ERR_NOARGS=-10 # no arguments provided
+ERR_BADURI=-20 # unsupported resource URI
 
+#===  FUNCTION  ================================================================
+#        NAME: choose-retriever
+# DESCRIPTION: sets the value of $RETRIEVER based on the URI of the resource to
+#              fetch
+# PARAMETER 1: the URI of the resource to fetch
+#===============================================================================
 function choose-retriever(){
     if [[ "$1" =~ http* ]]
     then
@@ -57,9 +79,18 @@ function choose-retriever(){
     fi
 }
 
+#===  FUNCTION  ================================================================
+#        NAME: retrieve
+# DESCRIPTION: use $RETRIEVER to grab a resource, passing the $EXTRA_ARGS if
+#              provided. Then the resource is passed through the $LINTER, the
+#              $HIGHLIGHTER and printed out via the $PAGER
+#===============================================================================
 function retrieve(){
     $RETRIEVER $EXTRA_ARGS $RESOURCE | $LINTER | $HIGHLIGHTER | $PAGER
 }
 
+#-------------------------------------------------------------------------------
+# Run the retrieval process
+#-------------------------------------------------------------------------------
 choose-retriever "$RESOURCE"
 retrieve
