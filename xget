@@ -50,6 +50,9 @@ RESOURCE="$1"   # the XML to retrieve
 shift
 EXTRA_ARGS="$@" # the arguments to provide to the retriever
 
+#-------------------------------------------------------------------------------
+# External programs
+#-------------------------------------------------------------------------------
 RETRIEVER="curl"
 PAGER="$PAGER"
 HIGHLIGHTER="source-highlight -o STDOUT -s xml -f esc"
