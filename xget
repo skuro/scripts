@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# XML get
+# -------
+#
+# Downloads and pretty prints XMLs from various sources
+#
+# Author: Carlo Sciolla <skuro@skuro.tk>
+# Version: 0.1
+#
+# Release notes:
+#
+# v0.1: Initial implementation, based on curl, cat, GNU source-highlight and less
+#
+
+
+function usage(){
+    echo "$0 xml_resource [..args..]"
+    echo
+    echo "Retrieves the xml_resource and prints it on screen after running it through a beautifier."
+    echo "If arguments are provided after the resource, they will be passed to the program used to fetch the resource."
+    echo
+    echo "Supported resources:"
+    echo -e "\thttp://.....\t-> curl is used to retrieve"
+    echo -e "\t/path/to/file\t-> cat is used to retrieve"
+    echo
+}
+
+if [ $# -lt 1 ]
+then
+    usage
+    exit $ERR_NOARG
+fi
+
+# Args mgmt
+RESOURCE="$1"
+shift
+EXTRA_ARGS="$@"
+
+RETRIEVER="curl"
+PAGER="$PAGER"
+HIGHLIGHTER="source-highlight -o STDOUT -s xml -f esc"
+LINTER="xmllint --format -"
+
+ERR_NOARGS=-10
+ERR_BADURI=-20
+
+function choose-retriever(){
+    if [[ "$1" =~ http* ]]
+    then
+        RETRIEVER="curl"
+    elif [ -f "$1" ]
+    then
+        RETRIEVER="cat"
+    else
+        exit $ERR_BADURI
+    fi
+}
+
+function retrieve(){
+    $RETRIEVER $EXTRA_ARGS $RESOURCE | $LINTER | $HIGHLIGHTER | $PAGER
+}
+
+choose-retriever "$RESOURCE"
+retrieve
