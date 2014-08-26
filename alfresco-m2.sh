@@ -153,7 +153,7 @@ function uppercase(){
 function deploy_app(){
     local APP=${1}
     local APP_CAPITAL=$(uppercase ${APP})
-    echo -e "Uploading ${CYAN}${APP_CAPITAL} v${ALF_VERSION}${NOCOLOR} artifacts to repo ${TARGET_REPO} at ${TARGET_REPO_URL}"
+    echo -e "Uploading ${CYAN}${APP_CAPITAL} v${ALF_VERSION}${NOCOLOR} artifacts to ${CYAN}${TARGET_REPO_URL}${NOCOLOR} [id: ${CYAN}${TARGET_REPO}${NOCOLOR}]"
     deploy_libraries ${APP}
     deploy ${APP} "war" ${ALF_VERSION} "${APP}.war"
 }
