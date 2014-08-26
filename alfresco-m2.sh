@@ -66,7 +66,7 @@ function file_noversion(){
 
     if [ ${PACKAGING} == "jar" ]
     then
-        FOLDER="${BASE_DIR}/alfresco/WEB-INF"
+        FOLDER="${BASE_DIR}/alfresco/WEB-INF/lib"
     else
         FOLDER="${BASE_DIR}"
     fi
@@ -139,5 +139,5 @@ for ARTF in ${NOVERSION[@]}
 do
     parse_noversion ${ARTF}
     file_noversion ${ARTF} ${PACKAGING}
-    deploy ${ARTF}
+    deploy ${ARTF} ${PACKAGING} ${FILE}
 done
