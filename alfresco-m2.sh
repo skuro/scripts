@@ -96,8 +96,7 @@ function deploy(){
             -DartifactId="${ARTIFACT_ID}" \
             -Dversion="${VERSION}" \
             -Durl="${TARGET_REPO_URL}" \
-            -Dpackaging="${PACKAGING}"  \
-            -Dclassifier="${RELEASE}" 2>&1)
+            -Dpackaging="${PACKAGING}" 2>&1)
 
         if [ ${?} -eq 0 ]
         then
