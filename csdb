@@ -1,0 +1,126 @@
+#!/bin/bash
+
+CREATE="create database {prefix}_{db};"
+USE="use {db};"
+GRANT="grant all on {prefix}_{db}.* to '{user}'@'{host}' identified by '{pass}';"
+DROP="drop database if exists {prefix}_{db};"
+
+LATEST_PATH="/Users/skuro/Development/Backbase/git/content/repository/target/hibernate3/sql/mysql/create-schema-bbcs.sql"
+
+function usage(){
+    PROG=`basename $0`
+    echo -e "Creates a new set of ContentServices databases."
+    echo -e ""
+    echo -e "\t$PROG prefix [version]"
+    echo -e ""
+    echo -e "\tprefix\thot to prefix DB names"
+    echo -e "\tversion\tOPTIONAL: the CS schema version to use to create the DBs"
+    echo -e ""
+}
+
+function run_exploded_scripts(){
+    echo "Creating ContentServices DB with schema v$VERSION"
+    __TMP=`mktemp -t cscreate`
+    unzip -p -j $SCRIPTS mysql/create-schema-bbcs.sql > $__TMP
+    QUERY=`cat $__TMP`
+    rm $__TMP
+}
+
+function try_download(){
+    echo "Scripts not found in the local repository, trying to dowload"
+    mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
+        -Dartifact=com.backbase.portal.contentservices:repository:$VERSION:zip:ddl-scripts \
+        -DrepoUrl="https://artifacts.backbase.com/repo/" \
+        -DrepoId="Backbase Artifact Repository" > /dev/null 2>&1
+}
+
+function load_schema_query(){
+    if [ $# = 0 ]
+    then
+        echo "Creating ContentServices DB with the latest schema"
+        QUERY=`cat $LATEST_PATH`
+    else
+        VERSION=$1
+        SCRIPTS="$HOME/.m2/repository/com/backbase/portal/contentservices/repository/$VERSION/repository-$VERSION-ddl-scripts.zip"
+        if [ -f $SCRIPTS ]
+        then
+            run_exploded_scripts
+        else
+            try_download
+            if [ -f $SCRIPTS ]
+            then
+                run_exploded_scripts
+            else
+                echo "Cannot find scripts for version v$VERSION, aborting"
+                exit -1
+            fi
+        fi
+    fi
+}
+
+function gen_query(){
+    QUERY=$1
+    shift
+
+    for param in $@
+    do
+        KEY="{${param%%:*}}"
+        VAL="${param##*:}"
+        QUERY="${QUERY//$KEY/$VAL}"
+    done
+}
+
+function run_query(){
+#    echo "Executing: [$QUERY]"
+    mysql -u root $1 -e "$QUERY"
+    QUERY=""
+}
+
+function switch_db(){
+    gen_query "$USE" "db:$1"
+}
+
+function run_queries(){
+    QUERY_ORIG="$1"
+    shift
+
+    if [ "x$1" = "xnoswitch" ]
+    then
+        SWITCH_DB=
+        shift
+    else
+        SWITCH_DB="yes"
+    fi
+
+    for name in cont conf res
+    do
+        if [ "x$SWITCH_DB" != "x" ]
+        then
+            switch_db "$PREFIX"_"$name"
+        fi
+        gen_query "$QUERY $QUERY_ORIG" "prefix:$PREFIX" "db:$name" $@
+        run_query
+    done
+}
+
+if [ $# -lt 1 ]
+then
+    usage
+    exit 1
+fi
+
+PREFIX=$1
+VERSION=$2
+
+echo "Dropping the databases"
+run_queries "$DROP" noswitch
+
+echo "Creating the databases"
+run_queries "$CREATE" noswitch
+
+echo "Set grants"
+run_queries "$GRANT" "user:backbase" "host:localhost" "pass:backbase"
+
+echo "Load the schema definition"
+load_schema_query $VERSION
+run_queries "$QUERY"

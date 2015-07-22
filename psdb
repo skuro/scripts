@@ -1,0 +1,134 @@
+#!/bin/bash
+
+CREATE="create database {prefix}_{db};"
+USE="use {db};"
+GRANT="grant all on {prefix}_{db}.* to '{user}'@'{host}' identified by '{pass}';"
+DROP="drop database if exists {prefix}_{db};"
+
+LATEST_PATH_BLANK="/Users/skuro/Development/Backbase/git/foundation/resources/src/main/resources/scripts/mysql/default-foundation-data-blank.sql"
+LATEST_PATH_SCHEMA="/Users/skuro/Development/Backbase/git/foundation/resources/src/main/resources/scripts/mysql/schema.ddl"
+
+function usage(){
+    PROG=`basename $0`
+    echo -e "Creates a new PortalServer database."
+    echo -e ""
+    echo -e "\t$PROG prefix [version]"
+    echo -e ""
+    echo -e "\tprefix\thot to prefix the DB name"
+    echo -e "\tversion\tOPTIONAL: the PS schema version to use to create the DB"
+    echo -e ""
+}
+
+function try_download(){
+    echo "Scripts not found in the local repository, trying to dowload"
+    mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get \
+        -Dartifact=com.backbase.portal.foundation:resources:$VERSION:zip:database-scripts \
+        -DrepoUrl="https://artifacts.backbase.com/repo/" \
+        -DrepoId="Backbase Artifact Repository" > /dev/null 2>&1
+}
+
+function run_exploded_scripts(){
+    echo "Creating PortalServer DB with schema v$VERSION"
+    __TMP=`mktemp -t cscreate`
+
+    unzip -p -j $SCRIPTS scripts/mysql/schema.ddl > $__TMP
+    QUERY_SCHEMA=`cat $__TMP`
+
+    unzip -p -j $SCRIPTS scripts/mysql/default-foundation-data-blank.sql > $__TMP
+    QUERY_BLANK=`cat $__TMP`
+
+    rm $__TMP
+}
+
+function load_schema_query(){
+    if [ $# = 0 ]
+    then
+        echo "Creating PortalServer DB with the latest schema"
+        QUERY_SCHEMA=`cat $LATEST_PATH_SCHEMA`
+        QUERY_BLANK=`cat $LATEST_PATH_BLANK`
+    else
+        VERSION=$1
+        SCRIPTS="$HOME/.m2/repository/com/backbase/portal/foundation/resources/$VERSION/resources-$VERSION-database-scripts.zip"
+        if [ -f $SCRIPTS ]
+        then
+            run_exploded_scripts
+        else
+            try_download
+            if [ -f $SCRIPTS ]
+            then
+                run_exploded_scripts
+            else
+                echo "Cannot find scripts for version v$VERSION, aborting"
+                exit -1
+            fi
+        fi
+    fi
+}
+
+function gen_query(){
+    QUERY=$1
+    shift
+
+    for param in $@
+    do
+        KEY="{${param%%:*}}"
+        VAL="${param##*:}"
+        QUERY="${QUERY//$KEY/$VAL}"
+    done
+}
+
+function run_query(){
+#    echo "Executing: [$QUERY]"
+    mysql -u root $1 -e "$QUERY"
+    QUERY=""
+}
+
+function switch_db(){
+    gen_query "$USE" "db:$1"
+}
+
+function run_queries(){
+    QUERY_ORIG="$1"
+    shift
+
+    if [ "x$1" = "xnoswitch" ]
+    then
+        SWITCH_DB=
+        shift
+    else
+        SWITCH_DB="yes"
+    fi
+
+    for name in portalds
+    do
+        if [ "x$SWITCH_DB" != "x" ]
+        then
+            switch_db "$PREFIX"_"$name"
+        fi
+        gen_query "$QUERY $QUERY_ORIG" "prefix:$PREFIX" "db:$name" $@
+        run_query
+    done
+}
+
+if [ $# -lt 1 ]
+then
+    usage
+    exit 1
+fi
+
+PREFIX=$1
+VERSION=$2
+
+echo "Dropping the databases"
+run_queries "$DROP" noswitch
+
+echo "Creating the databases"
+run_queries "$CREATE" noswitch
+
+echo "Set grants"
+run_queries "$GRANT" "user:backbase" "host:localhost" "pass:backbase"
+
+echo "Load the schema definition"
+load_schema_query $VERSION
+run_queries "$QUERY_SCHEMA"
+run_queries "$QUERY_BLANK"
