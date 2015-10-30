@@ -1,12 +1,14 @@
 #!/bin/sh
 
 # default location of emacsclient for OS X installations
-EC="/Applications/Emacs.app/Contents/MacOS/bin/emacsclient"
+EC="/usr/local/bin/emacsclient"
 
 # start Emacs daemon in case if it's not running yet
 if [ ! -e $TMPDIR/emacs$UID/server ]
 then
-	/Users/skuro/bin/emacs-daemon
+    echo "Emacs is not running. Start it with:"
+    echo "     launchctl load ~/Library/LaunchAgents/homebrew.mxcl.emacs.plist"
+    exit -1
 fi
 
 # -n : return immediately
