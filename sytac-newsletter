@@ -1,0 +1,38 @@
+#!/bin/bash
+
+NEWS=${1}
+SUBJECT=${2}
+
+function usage(){
+    echo "Sytac newsletter sender apg v0.1"
+    echo "Usage:"
+    echo "      ${0} [HTML file to send] \"[Subject]\""
+    exit -1
+}
+
+# MS crap only supports up to 550 characters in a line
+function check_line_length(){
+  ERRORS="$(awk '{if(length>=550) {print "line", NR, "is longer than 550 characters:", length, "±"}}' ${NEWS})"
+  if [ "${ERRORS}x" != "x" ]
+  then
+    echo ${ERRORS} | tr "±" "\n'"
+    echo "Aborting"
+    exit -1
+  fi
+}
+
+if [ $# -lt 2 ]
+then
+    usage
+fi
+
+check_line_length
+
+SUBJECT="${SUBJECT}±Content-Type: text/html; charset=UTF-8"
+
+#for ADDR in `cat ~/Dropbox/Sytac/mailing.txt`
+for ADDR in "carlo.sciolla@sytac.io"
+do
+    cat ${NEWS} | mail -s "$(echo "${SUBJECT}" | tr '±' '\n')" ${ADDR}
+    echo "Newsletter sent to ${ADDR}"
+done
